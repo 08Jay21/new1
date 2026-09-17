@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>今天誰中獎？｜幸運抽籤站</title>
+	<style>
+		:root {
+			--ink: #27233d;
+			--muted: #79758e;
+			--paper: #fffdf8;
+			--line: #e8e2d8;
+			--coral: #ff725e;
+			--yellow: #ffd166;
+			--teal: #63c7b2;
+			--lavender: #ddd6ff;
+			--shadow: 0 22px 60px rgba(57, 44, 82, .12);
+		}
+
+		* { box-sizing: border-box; }
+		body {
+			margin: 0;
+			min-height: 100vh;
+			color: var(--ink);
+			font-family: "Trebuchet MS", "Microsoft JhengHei", sans-serif;
+			background: #f8f1e8;
+			background-image: radial-gradient(#d9d1c6 1px, transparent 1px), linear-gradient(135deg, #fff8ec 0%, #eef8f4 100%);
+			background-size: 22px 22px, 100% 100%;
+		}
+
+		.page { width: min(1080px, calc(100% - 32px)); margin: 0 auto; padding: 34px 0 52px; }
+		header { display: flex; justify-content: space-between; align-items: end; gap: 20px; margin-bottom: 28px; }
+		.eyebrow { color: var(--coral); font-size: .78rem; font-weight: 800; letter-spacing: .16em; }
+		h1 { margin: 7px 0 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(2.4rem, 6vw, 4.4rem); line-height: .98; letter-spacing: -.04em; }
+		h1 span { color: var(--coral); }
+		.tagline { max-width: 220px; margin: 0 0 5px; color: var(--muted); font-size: .93rem; line-height: 1.6; }
+		.layout { display: grid; grid-template-columns: 1.15fr .85fr; gap: 20px; align-items: stretch; }
+		.panel { background: rgba(255, 253, 248, .92); border: 1px solid rgba(255,255,255,.8); border-radius: 24px; box-shadow: var(--shadow); }
+		.draw-panel { min-height: 470px; padding: 34px; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; position: relative; }
+		.draw-panel:after { content: "✦"; position: absolute; top: 22px; right: 27px; color: var(--yellow); font-size: 3rem; transform: rotate(16deg); }
+		.kicker { color: var(--muted); font-size: .82rem; font-weight: 700; letter-spacing: .08em; }
+		.result { display: grid; place-items: center; min-height: 245px; text-align: center; }
+		.result .spark { color: var(--coral); font-size: 2.2rem; animation: float 2.2s ease-in-out infinite; }
+		#winner { margin: 12px 0 8px; max-width: 100%; overflow-wrap: anywhere; font-family: Georgia, serif; font-size: clamp(2.8rem, 7vw, 5.8rem); line-height: 1; letter-spacing: -.06em; }
+		#winner.empty { color: #c7c2bf; font-size: clamp(2rem, 4vw, 3.1rem); letter-spacing: -.03em; }
+		#winner-note { margin: 0; color: var(--muted); }
+		.draw-button { width: 100%; padding: 19px 24px; border: 0; border-radius: 15px; color: #fff; background: var(--coral); box-shadow: 0 10px 0 #dc5a4c; font: 800 1.05rem inherit; cursor: pointer; transition: transform .15s, box-shadow .15s, background .15s; }
+		.draw-button:hover { background: #fa624f; transform: translateY(-2px); box-shadow: 0 12px 0 #dc5a4c; }
+		.draw-button:active { transform: translateY(5px); box-shadow: 0 5px 0 #dc5a4c; }
+		.side { display: grid; gap: 20px; grid-template-rows: 1fr 1fr; }
+		.list-panel, .history-panel { padding: 26px; }
+		.panel-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 17px; }
+		h2 { margin: 0; font-size: 1.05rem; }
+		.count { color: var(--coral); font-size: .8rem; font-weight: 800; }
+		textarea { display: block; width: 100%; min-height: 120px; padding: 15px; resize: vertical; border: 1px solid var(--line); border-radius: 13px; color: var(--ink); background: #fff; outline: none; font: 1rem/1.7 inherit; }
+		textarea:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(99,199,178,.16); }
+		.hint { margin: 11px 0 0; color: var(--muted); font-size: .78rem; }
+		.history-list { display: flex; flex-wrap: wrap; gap: 9px; max-height: 125px; overflow: auto; align-content: flex-start; }
+		.history-list:empty:before { content: "抽中的人會出現在這裡"; color: #aaa5a1; font-size: .88rem; }
+		.history-item { padding: 8px 12px; border-radius: 99px; color: #396b63; background: #e4f5ef; font-size: .85rem; font-weight: 700; animation: pop .35s both; }
+		.clear-button { border: 0; padding: 5px 0; color: var(--muted); background: transparent; font: .78rem inherit; cursor: pointer; text-decoration: underline; }
+		.clear-button:hover { color: var(--coral); }
+		footer { margin-top: 22px; color: #99918a; text-align: center; font-size: .78rem; }
+		@keyframes pop { from { opacity: 0; transform: scale(.7); } to { opacity: 1; transform: scale(1); } }
+		@keyframes float { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-7px) rotate(8deg); } }
+		@media (max-width: 700px) { .page { padding-top: 25px; } header { display: block; } .tagline { margin-top: 14px; max-width: none; } .layout { grid-template-columns: 1fr; } .draw-panel { min-height: 400px; padding: 26px; } .side { grid-template-rows: auto auto; } }
+	</style>
+</head>
+<body>
+	<main class="page">
+		<header>
+			<div><div class="eyebrow">LUCKY DRAW / 01</div><h1>今天<br><span>誰中獎？</span></h1></div>
+			<p class="tagline">把選擇交給一點點運氣，讓每一次抽籤都值得期待。</p>
+		</header>
+		<section class="layout">
+			<article class="panel draw-panel">
+				<div class="kicker">READY WHEN YOU ARE</div>
+				<div class="result" aria-live="polite"><div><div class="spark">✦</div><div id="winner" class="empty">準備好抽籤了嗎？</div><p id="winner-note">按下按鈕，幸運會揭曉</p></div></div>
+				<button class="draw-button" id="drawButton" type="button">抽出幸運兒　↗</button>
+			</article>
+			<div class="side">
+				<article class="panel list-panel">
+					<div class="panel-title"><h2>參加名單</h2><span class="count" id="count">0 位</span></div>
+					<textarea id="names" aria-label="參加名單" placeholder="小明&#10;小美&#10;阿哲&#10;（每行一個名字）"></textarea>
+					<p class="hint">每行一個名字，空白行會自動跳過。</p>
+				</article>
+				<article class="panel history-panel">
+					<div class="panel-title"><h2>抽籤紀錄</h2><button class="clear-button" id="clearButton" type="button">清除紀錄</button></div>
+					<div class="history-list" id="history"></div>
+				</article>
+			</div>
+		</section>
+		<footer>願今天的好運，剛好落在你身上。</footer>
+	</main>
+	<script>
+		const namesInput = document.querySelector('#names');
+		const count = document.querySelector('#count');
+		const winner = document.querySelector('#winner');
+		const winnerNote = document.querySelector('#winner-note');
+		const history = document.querySelector('#history');
+		let drawing = false;
+
+		function getNames() {
+			return namesInput.value.split('\n').map(name => name.trim()).filter(Boolean);
+		}
+
+		function updateCount() {
+			count.textContent = `${getNames().length} 位`;
+		}
+
+		function draw() {
+			const names = getNames();
+			if (drawing) return;
+			if (!names.length) {
+				winner.textContent = '先寫下名字！';
+				winnerNote.textContent = '名單裡還沒有參加者';
+				winner.classList.remove('empty');
+				return;
+			}
+			drawing = true;
+			winner.classList.remove('empty');
+			winnerNote.textContent = '命運轉動中⋯⋯';
+			let ticks = 0;
+			const timer = setInterval(() => {
+				winner.textContent = names[Math.floor(Math.random() * names.length)];
+				ticks += 1;
+				if (ticks >= 12) {
+					clearInterval(timer);
+					const selected = winner.textContent;
+					winnerNote.textContent = '恭喜你，今天的幸運降臨了！';
+					const item = document.createElement('span');
+					item.className = 'history-item';
+					item.textContent = selected;
+					history.prepend(item);
+					drawing = false;
+				}
+			}, 85);
+		}
+
+		namesInput.addEventListener('input', updateCount);
+		document.querySelector('#drawButton').addEventListener('click', draw);
+		document.querySelector('#clearButton').addEventListener('click', () => { history.innerHTML = ''; });
+		updateCount();
+	</script>
+</body>
+</html>
